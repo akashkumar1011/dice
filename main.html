@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instant Dice Roll</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial,sans-serif;
+}
+
+body{
+    height:100vh;
+    overflow:hidden;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:#b7e37d;
+    transition:background 0.8s ease;
+}
+
+.container{
+    width:100%;
+    height:100vh;
+    position:relative;
+}
+
+/* TOTAL */
+
+.total{
+    position:absolute;
+    top:20px;
+    left:20px;
+    background:#55614f;
+    color:white;
+    padding:12px 22px;
+    border-radius:15px;
+    font-size:24px;
+    font-weight:bold;
+    box-shadow:0 5px 15px rgba(0,0,0,.25);
+}
+
+/* CENTER */
+
+.center{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+}
+
+/* DICE */
+
+.dice{
+    width:140px;
+    height:140px;
+
+    background:linear-gradient(
+        145deg,
+        #ffffff,
+        #e8e8e8
+    );
+
+    border-radius:22px;
+
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    grid-template-rows:repeat(3,1fr);
+
+    padding:15px;
+
+    box-shadow:
+    0 20px 40px rgba(0,0,0,.25),
+    0 0 20px rgba(255,255,255,.7);
+
+    transform-style:preserve-3d;
+}
+
+/* SHADOW */
+
+.dice::after{
+    content:'';
+    position:absolute;
+    bottom:-18px;
+    left:10%;
+    width:80%;
+    height:14px;
+    background:rgba(0,0,0,.18);
+    border-radius:50%;
+    filter:blur(10px);
+}
+
+/* DOTS */
+
+.dot{
+    width:18px;
+    height:18px;
+    background:#111;
+    border-radius:50%;
+
+    justify-self:center;
+    align-self:center;
+
+    box-shadow:
+    inset 2px 2px 3px rgba(255,255,255,.3),
+    0 2px 4px rgba(0,0,0,.3);
+}
+
+/* BUTTON */
+
+.roll-btn{
+    position:absolute;
+    bottom:40px;
+    left:50%;
+    transform:translateX(-50%);
+
+    border:none;
+    background:#ff7b39;
+    color:white;
+
+    padding:15px 50px;
+
+    font-size:24px;
+    font-weight:bold;
+
+    border-radius:20px;
+    cursor:pointer;
+
+    box-shadow:
+    0 8px 20px rgba(0,0,0,.25);
+
+    transition:.2s;
+}
+
+.roll-btn:hover{
+    transform:translateX(-50%) scale(1.05);
+}
+
+.roll-btn:active{
+    transform:translateX(-50%) scale(.95);
+}
+
+/* ANIMATION */
+
+.rolling{
+    animation:
+    diceRoll 1s ease;
+}
+
+@keyframes diceRoll{
+
+    0%{
+        transform:
+        rotateX(0deg)
+        rotateY(0deg)
+        rotateZ(0deg)
+        scale(1);
+    }
+
+    25%{
+        transform:
+        rotateX(360deg)
+        rotateY(360deg)
+        rotateZ(180deg)
+        scale(1.2);
+    }
+
+    50%{
+        transform:
+        rotateX(720deg)
+        rotateY(720deg)
+        rotateZ(360deg)
+        scale(.9);
+    }
+
+    75%{
+        transform:
+        rotateX(1080deg)
+        rotateY(1080deg)
+        rotateZ(540deg)
+        scale(1.15);
+    }
+
+    100%{
+        transform:
+        rotateX(1440deg)
+        rotateY(1440deg)
+        rotateZ(720deg)
+        scale(1);
+    }
+
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+
+    <div class="total" id="total">
+        Total: 1
+    </div>
+
+    <div class="center">
+        <div class="dice" id="dice"></div>
+    </div>
+
+    <button class="roll-btn" onclick="rollDice()">
+        🎲 ROLL
+    </button>
+
+</div>
+
+<script>
+
+const dice = document.getElementById("dice");
+const total = document.getElementById("total");
+
+const colors = [
+    "#b7e37d",
+    "#87CEEB",
+    "#FFD166",
+    "#FF9AA2",
+    "#A78BFA",
+    "#FFB347",
+    "#6EE7B7",
+    "#F9A8D4",
+    "#60A5FA",
+    "#FCD34D",
+    "#34D399",
+    "#FB7185"
+];
+
+const faces = {
+
+    1:[5],
+
+    2:[1,9],
+
+    3:[1,5,9],
+
+    4:[1,3,7,9],
+
+    5:[1,3,5,7,9],
+
+    6:[1,3,4,6,7,9]
+
+};
+
+function drawFace(value){
+
+    dice.innerHTML="";
+
+    for(let i=1;i<=9;i++){
+
+        const cell=document.createElement("div");
+
+        if(faces[value].includes(i)){
+
+            const dot=document.createElement("div");
+            dot.className="dot";
+
+            cell.appendChild(dot);
+
+        }
+
+        dice.appendChild(cell);
+
+    }
+
+}
+
+function playSound(){
+
+    try{
+
+        const ctx =
+        new (window.AudioContext ||
+        window.webkitAudioContext)();
+
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+
+        osc.type="square";
+        osc.frequency.value=180;
+
+        gain.gain.setValueAtTime(
+            0.2,
+            ctx.currentTime
+        );
+
+        gain.gain.exponentialRampToValueAtTime(
+            0.001,
+            ctx.currentTime + 0.3
+        );
+
+        osc.start();
+        osc.stop(ctx.currentTime + 0.3);
+
+    }catch(err){}
+
+}
+
+function changeBackground(){
+
+    const color =
+    colors[Math.floor(
+        Math.random()*colors.length
+    )];
+
+    document.body.style.background=color;
+
+}
+
+function rollDice(){
+
+    if(navigator.vibrate){
+        navigator.vibrate(120);
+    }
+
+    playSound();
+
+    dice.classList.add("rolling");
+
+    changeBackground();
+
+    setTimeout(()=>{
+
+        const value =
+        Math.floor(Math.random()*6)+1;
+
+        drawFace(value);
+
+        total.textContent =
+        "Total: " + value;
+
+        dice.classList.remove("rolling");
+
+    },1000);
+
+}
+
+/* Initial Dice */
+
+drawFace(1);
+
+</script>
+
+</body>
+</html>
